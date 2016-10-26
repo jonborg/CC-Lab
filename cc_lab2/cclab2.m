@@ -19,7 +19,8 @@ Bfilt = (1-af)*[1 -1];
 % Filtragem seguida de eliminação de tendências
 % Filtering and detrending
 yf = filter(Bfilt,Afilt,ytrend);
-
+figure(4)
+freqz(Bfilt,Afilt,[0.01:100])
 %remove the tref (average value) of the
 %input signal
 
