@@ -2,6 +2,8 @@ close all
 %t = input.time;
 Kp=35.635;
 Ke=-3.8764;
+TBurn=10;
+NBurn=round(TBurn*fs);
 
 time = output.time;
 utrend = input.signals.values; % Entrada - Input signal
@@ -9,8 +11,8 @@ thetae = output.signals.values(:,1); % Potenciómetro - Potentiometer signal
 alphae = output.signals.values(:,2); % Extensómetro - Starin gage signal
 
 % Reconstrução ângulo total da barra 
-ytrend = thetae*Kp + alphae*Ke;
-
+ytrend=thetae*Kp + alphae*Ke;
+ytrend=180/pi*unwrap(pi/180*ytrend);
 %to build a model for the motor shaft angle dynamics
 %% - differentiation and filtering
 af = 0.8;
@@ -19,18 +21,19 @@ Bfilt = (1-af)*[1 -1];
 % Filtragem seguida de eliminação de tendências
 % Filtering and detrending
 yf = filter(Bfilt,Afilt,ytrend);
+yf=yf(NBurn+1:length(yf));
 figure(4)
 freqz(Bfilt,Afilt,[0.01:100])
+title('Filtro');
 %remove the tref (average value) of the
 %input signal
 
 u = detrend(utrend);
-
 %% - Model Identification
 %identify a model for the signal (motor plus bas)
-z = [yf u];
-na = 4; % AR part
-nb = 2; % X part
+z = [yf u(NBurn+1:length(u))];
+%na = 3; % AR part
+%nb = 3; % X part
 nc = na; % MA part
 nk = 1; % Atraso puro – pure delay
 nn = [na nb nc nk];
@@ -41,9 +44,10 @@ th = armax(z,nn) % th is a structure in identification toolbox format
 [den1,num1] = polydata(th);
 
 yfsim = filter(num1,den1,u); % Equivalent to idsim(u,th);
+yfsim=yfsim(NBurn+1:length(yfsim));
 figure(1);hold on;
-plot(time,yf,'r');
-plot(time,yfsim,'b');
+plot(time(NBurn+1:length(time)),yf,'r');
+plot(time(NBurn+1:length(time)),yfsim,'b');
 legend('yf','yfsim');
 hold off;
 %% - Add integrator
@@ -73,6 +77,13 @@ hold off
 [A,B,C,D] = tf2ss(num,den);
 
 yfss=dlsim(A,B,C,D,u);
+figure(5)
+hold on 
+plot(time,ytrend,'r');
+plot(time,yfss,'b');
+legend('ytrend','yfss');
+
+MDL=(length(yfsim)+2*(na+nb+nc)*log(length(yfsim)))*1/length(yfsim)*sum((yf-yfsim).^2)
 
 % plot(t, u)
 % hold on
