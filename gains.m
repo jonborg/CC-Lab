@@ -49,9 +49,14 @@ Ke=P(1);
 
 %% - Gráficos dos sinais
 figure(2)
-plot(p_time,potenciometro,e_time,extensometro)
-title('Sinais dos sensores');
+plot(p_time,potenciometro)
+title('Sinal do potenciómetro');
 xlabel('Tempo (s)');
 ylabel('Tensão (V)');
-legend ('Potenciometro','Extensometro');
+figure(3)
+plot(e_time,extensometro)
+title('Sinal do extensómetro');
+xlabel('Tempo (s)');
+ylabel('Tensão (V)');
+
 [Kp Ke]

@@ -1,7 +1,7 @@
 close all
 %t = input.time;
-Kp=35.635;
-Ke=-3.8764;
+Kp=35.7244;
+Ke=-3.8587;
 TBurn=10;
 NBurn=round(TBurn*fs);
 
@@ -23,7 +23,7 @@ Bfilt = (1-af)*[1 -1];
 yf = filter(Bfilt,Afilt,ytrend);
 yf=yf(NBurn+1:length(yf));
 figure(4)
-freqz(Bfilt,Afilt,[0.01:100])
+freqz(Bfilt,Afilt)
 title('Filtro');
 %remove the tref (average value) of the
 %input signal
@@ -32,8 +32,8 @@ u = detrend(utrend);
 %% - Model Identification
 %identify a model for the signal (motor plus bas)
 z = [yf u(NBurn+1:length(u))];
-%na = 3; % AR part
-%nb = 3; % X part
+na = 4; % AR part
+nb = 2; % X part
 nc = na; % MA part
 nk = 1; % Atraso puro – pure delay
 nn = [na nb nc nk];
@@ -46,9 +46,11 @@ th = armax(z,nn) % th is a structure in identification toolbox format
 yfsim = filter(num1,den1,u); % Equivalent to idsim(u,th);
 yfsim=yfsim(NBurn+1:length(yfsim));
 figure(1);hold on;
-plot(time(NBurn+1:length(time)),yf,'r');
-plot(time(NBurn+1:length(time)),yfsim,'b');
+plot(time(NBurn+1:NBurn*2+1),yf(1:NBurn+1),'r');
+plot(time(NBurn+1:NBurn*2+1),yfsim(1:NBurn+1),'b');
 legend('yf','yfsim');
+xlabel('Tempo (s)');
+ylabel('Tensão (V)');
 hold off;
 %% - Add integrator
 %vectors num and den have the coefficients of the numerator and
@@ -57,7 +59,7 @@ hold off;
 
 [num,den] = eqtflength(num1,conv(den1,[1 -1]));
 
-transfer=tf(num,den); %transfer function
+transfer=tf(num,den,0.1); %transfer function
 figure(2)
 bode(transfer)
 
@@ -75,13 +77,13 @@ hold off
 
 %to make the conversion to the state model parametrized 
 [A,B,C,D] = tf2ss(num,den);
-
-yfss=dlsim(A,B,C,D,u);
-figure(5)
-hold on 
-plot(time,ytrend,'r');
-plot(time,yfss,'b');
-legend('ytrend','yfss');
+% 
+% yfss=dlsim(A,B,C,D,u);
+% figure(5)
+% hold on 
+% plot(time,ytrend,'r');
+% plot(time,yfss,'b');
+% legend('ytrend','yfss');
 
 MDL=(length(yfsim)+2*(na+nb+nc)*log(length(yfsim)))*1/length(yfsim)*sum((yf-yfsim).^2)
 
