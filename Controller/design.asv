@@ -13,12 +13,11 @@ Re=1;
 %% Controlador
 sim('controlador')
 lambda_c=exp(log(abs(y_c(length(y_c),2)))/length(y_c))
-abs(pc)'
+abs(pc
 
 %% Observador
 sim('observador')
-lambda_o=exp(log(abs(x_o(270,4)))/270)
-abs(po)'
+
 %% Sistema Total
 sim('total_sys')
 
